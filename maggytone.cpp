@@ -22,10 +22,11 @@ Summer 2018
 using namespace std;
 
 
-bool busy(){
-	//check it timer is >0.01 s
-	//if yes return true
-	return 0; //demo
+bool busy()
+{
+    //check it timer is >0.01 s
+    //if yes return true
+    return 0; //demo
 }
 
 /*
@@ -39,21 +40,21 @@ void add_value_to_matrix(
 	vector <int> ends,	//end positions
 	int ed_n,
 	int counter,
-	int force)		
-{
+	int force){
+	
 	//use matrix value as the address of 61 set array
 	//Mutex starts
 	while(st_n>0)
-		{
-			st_n--;
-			matrix[counter][starts[st_n]]=force;
-		}
+	{
+		st_n--;
+		matrix[counter][starts[st_n]]=force;
+	}
 	
 	while(ed_n>0)
-		{
-			ed_n--;
-			matrix[counter][ends[ed_n]]=-1;
-		}
+	{
+		ed_n--;
+		matrix[counter][ends[ed_n]]=-1;
+	}
 	//Mutex ends
 }
 
@@ -87,7 +88,8 @@ int main() {
 
 //	    printf("%d\n", to_int);
 #ifdef DEBUG
-	    if(to_int==-112){
+	    if(to_int==-112)
+		{
 	    	printf("START\n");
 	    	state =1;
 	    }
