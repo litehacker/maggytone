@@ -1,4 +1,4 @@
-//COMPILE g++ `pkg-config --cflags opencv` pole.cpp `pkg-config --libs opencv`
+//COMPILE g++ `pkg-config --cflags opencv` -o pole pole.cpp `pkg-config --libs opencv` -pthread
 //RUN ./a.out
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
