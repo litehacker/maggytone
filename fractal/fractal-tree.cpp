@@ -21,8 +21,30 @@
 using namespace cv;
 using namespace std;
 
-class Buffer{
 
+class Image
+{
+    initialize()
+    {
+        start.x = w/2;                                         // Starting at x coordinate
+        start.y = h/2;                                         // Starting at y coordinate
+
+    }
+    Image()
+    {
+        initialize();
+    }
+
+    char maggytone[] = "MaggyTone Project";             // Window header
+    int bgr[3]={0,0,255};                               // Dot color
+    int size=2;                                         // Circle default size
+    Mat bckg(h, w, CV_8UC3, Scalar(255, 255, 255));     // Background colors
+    Point start;                                           // Coordinates declaration                                        // Coordinates declaration
+
+}image;
+
+class Buffer
+{
     bool flag;
     int data[PB];       //pressed buttons data
     bool press[PB];     //storing pressed buttons
@@ -33,11 +55,17 @@ class Buffer{
         data[PB]={1};
         press[PB]={0};
     }
-    void unmodified()
+    void unmodify()
     {
         flag=false;
     }
-    void modified()
+    bool modified()
+    {
+        if (flag)
+            return 1;
+        return 0;
+    }
+    void modify()
     {
         flag=true;
     }
@@ -57,7 +85,6 @@ class Buffer{
     {
         press[location]=0;
     }
-
 }buffer;
 
 void *update_buffer(void*a)
@@ -79,7 +106,7 @@ void *update_buffer(void*a)
         }
 
         buffer.data[button]=button;     // mark pressed button
-        buffer.modified();              // enable modified flag
+        buffer.modify();              // enable modified flag
         #ifdef BUF_LOCK
         buffer.buf_mutex.unlock();
         #endif
@@ -90,9 +117,21 @@ void *update_buffer(void*a)
 }
 
 // Drawing filled circles in specific location
-void MyFilledCircle( Mat img, Point center, int bgr[], int size )
+void draw_line(int color[], int size, Point start, double angle)
 {
-    circle( img,center,size,Scalar( bgr[0],bgr[1],bgr[2] ),FILLED,LINE_8 );
+
+    //calculate distance
+    distance=sqrt((end.y-start.y)^2+(end.x-start.x)^2);
+
+    //calculate slope function between two points
+    m=(end.y-start.y)/(end.x-start.x);
+    c=end.y-(m*end.x);
+    cout<<"slope (y)="<<m<<"x+"<<c;
+
+    // Draw between points according the slope function above
+    while(zero<distance){
+        circle( img,point,size,Scalar( color[0],color[1],color[2] ),FILLED,LINE_8 );
+    }
 }
 
 // Continue drawing if the buffer has any of the input
@@ -108,62 +147,42 @@ bool continue_drawing()
     return 0;
 }
 
-char maggytone[] = "MaggyTone Project"; // window header
-int bgr[3]={0,0,255};                   // Background color
-int size=2;                             // Circle default size
-Mat bckg(h, w, CV_8UC3, Scalar(255, 255, 255)); // background colors
-Point pt;                                       // coordinates declaration
-pt.x = w/2; // Starting at x coordinate
-pt.y = h/2; // Starting at y coordinate
 
 bool stop_drawing(int location)
 {
     if (buffer.data[location]<0)
-        return 1;                   // Stop Drawing
+        return 1;                                   // Stop Drawing
     return 0;
 }
 
 void *fractal(void *a)
 {
-    cout<<"i start drawing!"<<endl;
     int button;
-    if (buffer.flag)                            // if buffer is modified
+    if (buffer.modified())                                // If buffer is modified
     {
-        for (size_t k = 0; k < PB; k++)
+        for (int k = 0; k < PB; k++)
         {
             if (buffer.data[k]>0)
             {
                 size=buffer.data[k];
                 button=k;
-                by=k%PB;
+                break;
             }
         }
-        buffer.unmodified();                    // disable flag
-    }
-
-    //pt.x=;
-    //pt.y=;
-
-    MyFilledCircle(bckg,pt,bgr,size);
-    moveWindow( maggytone, 0, 0 );
-    imshow( maggytone, bckg );
-    waitKey(1);
-
-    if (stop_drawing(button))
-    {
+        buffer.unmodify();                        // Disable flag
+        draw_line( size, image.start, button);
         pthread_exit(0);
     }
-    else
     fractal();
-
 }
 
 int main( void )
 {
-    pthread_t   th_draw, // thread which draws out of matrix
-                th_matrix_reader; // thread for simulating piano inputs out of matrix
-    int th_submit; // thread initiation report
-
+    pthread_t   th_draw,            // Thread which draws out of matrix
+                th_matrix_reader;   // Thread for simulating piano inputs out of matrix
+    int th_submit;                  // Thread initiation report
+    moveWindow( image.maggytone, 0, 0 );
+    imshow( image.maggytone, bckg );
 
 #ifdef ENABLE_DRAW
 
