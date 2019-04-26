@@ -1,63 +1,70 @@
-//COMPILE g++ `pkg-config --cflags opencv` -o pole pole.cpp `pkg-config --libs opencv` -pthread
-
-//RUN ./a.out
+//COMPILE g++ `pkg-config --cflags opencv` -o fractal-tree fractal-tree.cpp `pkg-config --libs opencv` -pthread
+//RUN ./fractal-tree
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <mutex>
 #include <pthread.h>
-#include <cmath>
+#include <math.h>
 #include <iostream>
 
 #define w 1200      // screen width
 #define h 900       // screen height
 #define PB 61       // buttons in piano
 #define LIMIT       // Limit of fractal iterations
-
+#define pi 3.14159265359
 #define ENABLE_DRAW
 #define ENABLE_BUFFER
-#define BUF_LOCK
+#define DEGREES 360
+//#define BUF_LOCK
 
 using namespace cv;
 using namespace std;
 
+Mat bckg(h, w, CV_8UC3, Scalar(255, 255, 255));     // Background colors
 
 class Image
 {
-    initialize()
+    void initialize()
     {
-        start.x = w/2;                                         // Starting at x coordinate
-        start.y = h/2;                                         // Starting at y coordinate
-
+        start.x = w/2;                              // Starting at x coordinate
+        start.y = h/2;                              // Starting at y coordinate
+        maggytone = "MaggyTone Project";
     }
+public:
     Image()
     {
         initialize();
     }
-
-    char maggytone[] = "MaggyTone Project";             // Window header
+    string maggytone;                                   // Window header
     int bgr[3]={0,0,255};                               // Dot color
     int size=2;                                         // Circle default size
-    Mat bckg(h, w, CV_8UC3, Scalar(255, 255, 255));     // Background colors
-    Point start;                                           // Coordinates declaration                                        // Coordinates declaration
-
+    Point start;                                        // Coordinates declaration
 }image;
 
 class Buffer
 {
+private:
+    mutex buf_mutex;
+    bool mut_lock;
+public:
     bool flag;
     int data[PB];       //pressed buttons data
     bool press[PB];     //storing pressed buttons
-    mutex buf_mutex;
+
     Buffer()
     {
         flag=false;
         data[PB]={1};
         press[PB]={0};
+        mut_lock=0;
     }
     void unmodify()
     {
         flag=false;
+        data[PB]={0};           // delete all old input data
+        for (int i = 0; i<PB; i++)
+        data[i]=0;
     }
     bool modified()
     {
@@ -85,7 +92,96 @@ class Buffer
     {
         press[location]=0;
     }
+    void lock(){
+        mut_lock=1;
+        buf_mutex.lock();
+    }
+    void unlock(){
+        buf_mutex.unlock();
+        mut_lock=0;
+    }
+    bool locked(){
+        if (mut_lock==1)
+            return 1;
+        return 0;
+    }
 }buffer;
+
+// Continue drawing if the buffer has any of the input
+bool continue_drawing()
+{
+
+    if (!buffer.modified())
+        return 1;
+    else
+        return 0;
+}
+
+// Drawing filled circles in specific location
+void draw_line(double size, double angle)
+{
+    int color[3]={0};
+    double x_coord = image.start.x, y_coord = image.start.y;
+    //buffer.unlock();
+
+    angle=(angle*DEGREES/PB);
+
+    while(continue_drawing()){
+        circle(bckg, image.start, 1, Scalar( color[0],color[1],color[2] ), FILLED,LINE_8 );
+
+        moveWindow( image.maggytone, 0, 0 );
+        imshow( image.maggytone, bckg );
+        waitKey(100);
+
+        //when to update size
+        if(size>1)
+            size-=0.1;
+
+        //update coordinates
+        x_coord += sin(angle*pi/180);
+        y_coord += -cos(angle*pi/180);
+
+        image.start.x = x_coord;
+        image.start.y = y_coord;
+    }
+    std::cout << "---------------------------: buffer.modified()=" <<buffer.modified()<< '\n';
+
+}
+
+void print_buf()
+{
+    for (int i = 0; i<PB; i++)
+    cout << buffer.data[i]<<" ";
+    cout<<endl;
+}
+
+void *fractal(void *a)
+{
+    int angle, button, size;
+    while(1==1)
+    {
+        if (buffer.modified())        // If buffer is modified
+        {
+            //buffer.lock();
+            for (int k = 0; k < PB; k++)
+            {
+                if (buffer.data[k]>0)
+                {
+                    size=buffer.data[k];
+                    angle=k;
+                    break;
+                }
+            }
+            buffer.unmodify();                  // Disable flag and reset buffer
+            print_buf();
+            draw_line( size, angle);
+        }
+    }
+    //fractal(NULL);
+    pthread_exit(0);
+}
+
+
 
 void *update_buffer(void*a)
 {
@@ -94,87 +190,31 @@ void *update_buffer(void*a)
     while (1==1)
     {
         // some action to tigger to update the buffer
+        while(buffer.modified()){}
         cin>>button;
         // actual update starts here. lock and unlock for safety
         #ifdef BUF_LOCK
         //lock_guard <mutex> lockGuard(buffer.buf_mutex); //Do this for each buffer you want to access
-        buffer.buf_mutex.lock();
-        #endif
-        for (size_t t = 0; t < PB; t++)
-        {
-            buffer.data[t]=0;           // delete all old input data
-        }
 
-        buffer.data[button]=button;     // mark pressed button
-        buffer.modify();              // enable modified flag
-        #ifdef BUF_LOCK
-        buffer.buf_mutex.unlock();
+        buffer.lock();
         #endif
-        cout<<endl<<"buffer updated "<< i <<endl;
+
+        buffer.data[button]=button;    // mark pressed button
+        buffer.modify();               // enable modified flag
+
+        #ifdef BUF_LOCK
+
+        buffer.unlock();
+
+        #endif
+        if (buffer.modified())
+            cout<<"buffer updated successfully"<< i <<":"<<buffer.modified()<<endl;
         i++;
     }
     pthread_exit(0);
 }
 
-// Drawing filled circles in specific location
-void draw_line(int color[], int size, Point start, double angle)
-{
 
-    //calculate distance
-    distance=sqrt((end.y-start.y)^2+(end.x-start.x)^2);
-
-    //calculate slope function between two points
-    m=(end.y-start.y)/(end.x-start.x);
-    c=end.y-(m*end.x);
-    cout<<"slope (y)="<<m<<"x+"<<c;
-
-    // Draw between points according the slope function above
-    while(zero<distance){
-        circle( img,point,size,Scalar( color[0],color[1],color[2] ),FILLED,LINE_8 );
-    }
-}
-
-// Continue drawing if the buffer has any of the input
-bool continue_drawing()
-{
-    for (size_t k = 0; k < PB; k++)
-    {
-        if (buffer.data[k]>0)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-
-bool stop_drawing(int location)
-{
-    if (buffer.data[location]<0)
-        return 1;                                   // Stop Drawing
-    return 0;
-}
-
-void *fractal(void *a)
-{
-    int button;
-    if (buffer.modified())                                // If buffer is modified
-    {
-        for (int k = 0; k < PB; k++)
-        {
-            if (buffer.data[k]>0)
-            {
-                size=buffer.data[k];
-                button=k;
-                break;
-            }
-        }
-        buffer.unmodify();                        // Disable flag
-        draw_line( size, image.start, button);
-        pthread_exit(0);
-    }
-    fractal();
-}
 
 int main( void )
 {
