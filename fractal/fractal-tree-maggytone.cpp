@@ -1,5 +1,15 @@
 //COMPILE g++ `pkg-config --cflags opencv` -o tree tree.cpp `pkg-config --libs opencv` -pthread
 //RUN ./fractal-tree
+
+//NOTE name |  1'st oct  |  2'nd oct  |  3'st oct  |  4'nd oct  |  5'st oct  |
+// do       |
+// re       |
+// mi       |
+// fa       |
+// sol      |
+// la       |
+// si       |
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
