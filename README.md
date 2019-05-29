@@ -6,4 +6,4 @@ For instalation and use instructions visit [WIKI](https://github.com/litehacker/
 [Valse](https://www.youtube.com/watch?v=VYCOg-yglNM) of [Evgeny Grinko](https://www.instagram.com/evgenygrinko/), 
 Izmir March
 # Output Images:
-![Valse-Maggytone-](relative/path/to/img.jpg?raw=true "Title")
+![Valse-Maggytone-](images/valse.png?raw=true "Title")
