@@ -7,7 +7,7 @@ For instalation and use instructions visit [WIKI](https://github.com/litehacker/
 Izmir March
 # Output Images:
 ![Valse-Maggytone-](images/valse.png?raw=true "Valse- polar geometry function - piano to image")
-![izmir marsi-](images/izmir marsi.png?raw=true "izmir marsi - polar geometry function - piano to image")
+![izmir marsi-](images/izmir%20marsi.png?raw=true "izmir marsi - polar geometry function - piano to image")
 ![Valse-Maggytone-](images/valse-petal.png?raw=true "Valse- polar geometry function - piano to image")
 ![Valse rose-Maggytone-](images/valse-rose.png?raw=true "Valse Rose- polar geometry function - piano to image")
 ![Valse Spiral-Maggytone-](images/valse-spiral.png?raw=true "Valse Spiral- polar geometry function - piano to image")
